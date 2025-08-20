@@ -51,7 +51,7 @@ body {
 }
 
 .bar-container label {
-  width: 70px;
+  width: 90px;
   font-size: 14px;
   font-weight: bold;
 }
@@ -189,4 +189,18 @@ button:disabled {
   width: 50px;
   text-align: right;
   font-size: 14px;
+}
+
+p {
+  margin-block-start: 9px;
+  margin-block-end: 9px;
+}
+
+h2 {
+  margin-block-start: 9px;
+
+}
+
+h1 {
+    margin-block-start: 0px;
 }
