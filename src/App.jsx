@@ -12,10 +12,13 @@ export default function Game() {
 
   const missionTypes = ["Robo", "Asesinato", "Redada", "Estafa", "Contrabando"];
   const difficulties = [
-    { name: "Simple", req: 0, time: 10000, success: 0.9, damage: 20 },
-    { name: "Normal", req: 5, time: 20000, success: 0.8, damage: 30 },
-    { name: "Dificil", req: 10, time: 30000, success: 0.7, damage: 40 },
+    { name: "Simple", req: 0, time: 10000, success: 0.9, damage: 20, exp: 20 },
+    { name: "Normal", req: 5, time: 20000, success: 0.8, damage: 30, exp: 50 },
+    { name: "Dificil", req: 10, time: 30000, success: 0.7, damage: 40, exp: 100 },
   ];
+
+  const MAX_STAT = 30;
+  const MAX_HP = 100;
 
   const [profession, setProfession] = useState(null);
   const [stats, setStats] = useState({
@@ -25,13 +28,19 @@ export default function Game() {
     informacion: 0,
     patrullaje: 0,
   });
-  const [hp, setHp] = useState(100);
+  const [hp, setHp] = useState(MAX_HP);
   const [level, setLevel] = useState(1);
+  const [exp, setExp] = useState(0);
   const [points, setPoints] = useState(0);
   const [missions, setMissions] = useState([]);
   const [cooldown, setCooldown] = useState(0);
+  const [nextMissionIn, setNextMissionIn] = useState(300); // contador en segundos (5 min)
 
-  // Elegir profesión
+  const expToNextLevel = (lvl) => {
+    if (lvl === 1) return 100;
+    return Math.floor(expToNextLevel(lvl - 1) * 1.6);
+  };
+
   const chooseProfession = (prof) => {
     let newStats = { fuerza: 0, coartada: 0, activos: 0, informacion: 0, patrullaje: 0 };
     newStats[professions[prof]] = 10;
@@ -40,7 +49,6 @@ export default function Game() {
     generateMissions(5);
   };
 
-  // Generar misiones
   const generateMissions = (n) => {
     let newMissions = [];
     for (let i = 0; i < n; i++) {
@@ -49,7 +57,7 @@ export default function Game() {
       const statKeys = Object.keys(stats);
       const reqStat = statKeys[Math.floor(Math.random() * statKeys.length)];
       newMissions.push({
-        id: Date.now() + Math.random(), // evitar IDs duplicados
+        id: Date.now() + Math.random(),
         name: `${type} ${diff.name}`,
         difficulty: diff,
         reqStat: reqStat,
@@ -58,7 +66,7 @@ export default function Game() {
     setMissions((prev) => [...prev, ...newMissions]);
   };
 
-  // Cooldown timer (disminuye cada 1s)
+  // Cooldown timer
   useEffect(() => {
     if (cooldown > 0) {
       const interval = setInterval(() => {
@@ -71,24 +79,29 @@ export default function Game() {
   // HP regen cada 10s si no hay cooldown
   useEffect(() => {
     const interval = setInterval(() => {
-      if (cooldown === 0 && hp < 100) {
-        setHp((h) => Math.min(100, h + 5));
+      if (cooldown === 0 && hp < MAX_HP) {
+        setHp((h) => Math.min(MAX_HP, h + 5));
       }
     }, 10000);
     return () => clearInterval(interval);
   }, [cooldown, hp]);
 
-  // Generar misión nueva cada 5 minutos si hay menos de 5
+  // Contador de siguiente misión
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (missions.length < 5) {
-        generateMissions(1);
-      }
-    }, 300000); // 5 minutos
-    return () => clearInterval(interval);
-  }, [missions]); // depende de missions para verificar cantidad
+    if (missions.length < 5) {
+      const interval = setInterval(() => {
+        setNextMissionIn((n) => {
+          if (n <= 1) {
+            generateMissions(1);
+            return 300; // reiniciar contador a 5 min
+          }
+          return n - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [missions]);
 
-  // Aceptar misión
   const acceptMission = (mission) => {
     if (cooldown > 0) return;
     if (stats[mission.reqStat] < mission.difficulty.req) {
@@ -101,8 +114,18 @@ export default function Game() {
     setTimeout(() => {
       if (Math.random() <= mission.difficulty.success) {
         alert(`¡Éxito en la misión ${mission.name}!`);
-        setLevel((lvl) => lvl + 1);
-        setPoints((p) => p + 5);
+        setExp((currentExp) => {
+          let newExp = currentExp + mission.difficulty.exp;
+          let newLevel = level;
+          let tempExp = newExp;
+          while (tempExp >= expToNextLevel(newLevel)) {
+            tempExp -= expToNextLevel(newLevel);
+            newLevel += 1;
+            setLevel(newLevel);
+            setPoints((p) => p + 5);
+          }
+          return tempExp;
+        });
       } else {
         alert(`Fallaste la misión ${mission.name}`);
         setHp((h) => Math.max(0, h - mission.difficulty.damage));
@@ -111,14 +134,12 @@ export default function Game() {
     }, mission.difficulty.time);
   };
 
-  // Cancelar misión
   const cancelMission = (missionId) => {
     setMissions((ms) => ms.filter((m) => m.id !== missionId));
   };
 
-  // Asignar puntos
   const upgradeStat = (stat) => {
-    if (points > 0) {
+    if (points > 0 && stats[stat] < MAX_STAT) {
       setStats((s) => ({ ...s, [stat]: s[stat] + 1 }));
       setPoints((p) => p - 1);
     }
@@ -143,12 +164,42 @@ export default function Game() {
     <div className="game">
       <h1>{profession}</h1>
       <div className="stats">
-        <p>HP: {hp}</p>
+        <div className="bar-container">
+          <label>HP:</label>
+          <div className="bar-background">
+            <div
+              className="bar hp-bar"
+              style={{ width: `${(hp / MAX_HP) * 100}%` }}
+            />
+          </div>
+          <span>{hp}/{MAX_HP}</span>
+        </div>
+
+        <div className="bar-container">
+          <label>EXP:</label>
+          <div className="bar-background">
+            <div
+              className="bar exp-bar"
+              style={{ width: `${(exp / expToNextLevel(level)) * 100}%` }}
+            />
+          </div>
+          <span>{exp}/{expToNextLevel(level)}</span>
+        </div>
+
         <p>Nivel: {level}</p>
         <p>Puntos disponibles: {points}</p>
+
         {Object.keys(stats).map((s) => (
-          <div key={s} className="stat">
-            {s}: {stats[s]} <button onClick={() => upgradeStat(s)}>+</button>
+          <div key={s} className="bar-container">
+            <label>{s}:</label>
+            <div className="bar-background">
+              <div
+                className="bar stat-bar"
+                style={{ width: `${(stats[s] / MAX_STAT) * 100}%` }}
+              />
+            </div>
+            <span>{stats[s]}/{MAX_STAT}</span>
+            <button onClick={() => upgradeStat(s)}>+</button>
           </div>
         ))}
       </div>
@@ -161,6 +212,7 @@ export default function Game() {
             <p>Requiere: {m.difficulty.req} {m.reqStat}</p>
             <p>Prob. Éxito: {m.difficulty.success * 100}%</p>
             <p>Duración: {m.difficulty.time / 1000}s</p>
+            <p>Exp: {m.difficulty.exp}</p>
             <button disabled={cooldown > 0} onClick={() => acceptMission(m)}>
               Aceptar
             </button>
@@ -171,11 +223,16 @@ export default function Game() {
         ))}
       </div>
 
-      {/* Espacio fijo para cooldown */}
+      {/* Cooldown y siguiente misión */}
       <div className="cooldown-container">
         <p className="cooldown">
           Cooldown: {cooldown > 0 ? `${cooldown / 1000}s` : "0s"}
         </p>
+        {missions.length < 5 && nextMissionIn > 0 && (
+          <p className="next-mission">
+            Siguiente misión en: {Math.floor(nextMissionIn / 60)}m {nextMissionIn % 60}s
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,73 +1,150 @@
+/* Fondo general de la página */
 body {
-  background: #111;
-  color: #eee;
+  margin: 0;
+  padding: 0;
+  background-color: #8f8f8f; /* gris claro, neutro */
+  display: flex;
+  justify-content: center; /* centrar horizontalmente */
+  align-items: center;     /* centrar verticalmente */
+  height: 100vh;
   font-family: Arial, sans-serif;
-  text-align: center;
 }
 
+/* Estilo del juego */
 .game {
-  max-width: 1200px;
-  margin: auto;
+  width: 1200px;
+  height: 100%;
   padding: 20px;
+  background-color: #2e2e2e; /* gris oscuro neutro */
+  color: #e0e0e0; /* texto gris claro */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden; /* evita scroll vertical */
+  font-size: 16px;
 }
 
-.professions button {
-  margin: 10px;
-  padding: 10px 20px;
-  background: #333;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.professions button:hover {
-  background: #555;
-}
-
+/* Contenedores */
 .stats {
-  margin: 20px 0;
-  text-align: left;
-  background: #222;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.stat button {
-  margin-left: 10px;
-  padding: 2px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .missions {
   display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  margin-top: 20px;
+  flex-wrap: nowrap; /* fila única */
+  overflow-x: auto;  /* scroll horizontal si no caben todas */
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
-.mission {
-  background: #222;
-  padding: 15px;
-  border-radius: 8px;
-  margin: 10px;
-  width: 150px;
+/* Contenedor de barra */
+.bar-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.mission button {
+.bar-container label {
+  width: 70px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Fondo de barra */
+.bar-background {
+  flex: 0 0 25%; /* 25% del ancho de stats */
+  height: 18px;
+  background-color: #555555; /* gris medio para barras de fondo */
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Barra con color según tipo */
+.bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.hp-bar {
+  background-color: #ff4d4d; /* rojo moderado */
+}
+
+.exp-bar {
+  background-color: #9b59b6; /* morado para EXP */
+}
+
+.stat-bar {
+  background-color: #58d68d; /* verde suave */
+}
+
+/* Barra de cooldown */
+.cooldown-container {
+  height: 30px;
   margin-top: 10px;
-  padding: 5px 10px;
-  background: #444;
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
 }
-.mission button:disabled {
-  background: #666;
+
+/* Botones */
+button {
+  background-color: #4d4d4d; /* gris oscuro neutro */
+  color: #e0e0e0;
+  border: 1px solid #e0e0e0;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #6e6e6e; /* gris más claro al hover */
+}
+
+button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.cooldown {
-  margin-top: 20px;
-  font-weight: bold;
-  color: #f55;
+/* Profesiones */
+.professions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Misiones como cuadrados, fila horizontal */
+.mission {
+  flex: 0 0 16%; /* ancho para 5 misiones en fila */
+  border: 1px solid #777777; /* gris medio */
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #4d4d4d; /* gris oscuro neutro */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mission p {
+  margin: 2px 0;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Espacio fijo para cooldown */
+.cooldown-container p {
+  margin: 0;
+}
+
+/* Barras con números */
+.bar-container span {
+  width: 50px;
+  text-align: right;
+  font-size: 14px;
 }
