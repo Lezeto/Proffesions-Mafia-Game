@@ -14,7 +14,7 @@ body {
 .game {
   width: 1200px;
   height: 100%;
-  padding: 20px;
+  padding: 40px;
   background-color: #2e2e2e; /* gris oscuro neutro */
   color: #e0e0e0; /* texto gris claro */
   box-sizing: border-box;

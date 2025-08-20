@@ -34,7 +34,9 @@ export default function Game() {
   const [points, setPoints] = useState(0);
   const [missions, setMissions] = useState([]);
   const [cooldown, setCooldown] = useState(0);
-  const [nextMissionIn, setNextMissionIn] = useState(300); // contador en segundos (5 min)
+  const [nextMissionIn, setNextMissionIn] = useState(70); // contador en segundos (5 min)
+  const [missionFull, setMissionFull] = useState(true);
+  const [message, setMessage] = useState(""); // mensaje temporal
 
   const expToNextLevel = (lvl) => {
     if (lvl === 1) return 100;
@@ -86,26 +88,33 @@ export default function Game() {
     return () => clearInterval(interval);
   }, [cooldown, hp]);
 
-  // Contador de siguiente misión
   useEffect(() => {
     if (missions.length < 5) {
+      setMissionFull(false);
+      setNextMissionIn(70); // reinicia el contador inmediatamente
       const interval = setInterval(() => {
         setNextMissionIn((n) => {
           if (n <= 1) {
             generateMissions(1);
-            return 300; // reiniciar contador a 5 min
+            if (missions.length === 5) setMissionFull(true);
+            return 70;
           }
           return n - 1;
         });
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [missions]);
+  }, [missionFull]);
+
+  const showTempMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 7000); // dura 7 segundos
+  };
 
   const acceptMission = (mission) => {
     if (cooldown > 0) return;
     if (stats[mission.reqStat] < mission.difficulty.req) {
-      alert("No tienes suficientes stats para esta misión.");
+      showTempMessage("No tienes suficientes stats para esta misión.");
       return;
     }
 
@@ -113,7 +122,7 @@ export default function Game() {
 
     setTimeout(() => {
       if (Math.random() <= mission.difficulty.success) {
-        alert(`¡Éxito en la misión ${mission.name}!`);
+        showTempMessage(`¡Éxito en la misión ${mission.name}!`);
         setExp((currentExp) => {
           let newExp = currentExp + mission.difficulty.exp;
           let newLevel = level;
@@ -127,7 +136,7 @@ export default function Game() {
           return tempExp;
         });
       } else {
-        alert(`Fallaste la misión ${mission.name}`);
+        showTempMessage(`Fallaste la misión ${mission.name}`);
         setHp((h) => Math.max(0, h - mission.difficulty.damage));
       }
       setMissions((ms) => ms.filter((m) => m.id !== mission.id));
@@ -233,6 +242,7 @@ export default function Game() {
             Siguiente misión en: {Math.floor(nextMissionIn / 60)}m {nextMissionIn % 60}s
           </p>
         )}
+        {message && <p className="mission-message">{message}</p>}
       </div>
     </div>
   );
