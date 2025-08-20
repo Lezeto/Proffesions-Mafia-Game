@@ -16,13 +16,12 @@ export default function Game() {
   };
 
   const professionImages = {
-  Deportista: deportistaImg,
-  Abogado: abogadoImg,
-  Empresario: empresarioImg,
-  Sacerdote: sacerdoteImg,
-  Policia: policiaImg,
-};
-
+    Deportista: deportistaImg,
+    Abogado: abogadoImg,
+    Empresario: empresarioImg,
+    Sacerdote: sacerdoteImg,
+    Policia: policiaImg,
+  };
 
   const missionTypes = ["Robo", "Asesinato", "Redada", "Estafa", "Contrabando"];
   const difficulties = [
@@ -67,17 +66,17 @@ export default function Game() {
     generateMissions(5, newStats);
   };
 
-const generateMissions = (n, currentStats) => {
-  let newMissions = [];
-  for (let i = 0; i < n; i++) {
-    const type = missionTypes[Math.floor(Math.random() * missionTypes.length)];
-    const diff = difficulties[Math.floor(Math.random() * difficulties.length)];
-    const statKeys = Object.keys(currentStats); // use explicit stats
-    const reqStat = statKeys[Math.floor(Math.random() * statKeys.length)];
-    newMissions.push({ id: Date.now() + Math.random(), name: `${type} ${diff.name}`, difficulty: diff, reqStat });
-  }
-  setMissions((prev) => [...prev, ...newMissions]);
-};
+  const generateMissions = (n, currentStats = stats) => {
+    let newMissions = [];
+    for (let i = 0; i < n; i++) {
+      const type = missionTypes[Math.floor(Math.random() * missionTypes.length)];
+      const diff = difficulties[Math.floor(Math.random() * difficulties.length)];
+      const statKeys = Object.keys(currentStats);
+      const reqStat = statKeys[Math.floor(Math.random() * statKeys.length)];
+      newMissions.push({ id: Date.now() + Math.random(), name: `${type} ${diff.name}`, difficulty: diff, reqStat });
+    }
+    setMissions((prev) => [...prev, ...newMissions]);
+  };
 
   useEffect(() => {
     if (cooldown > 0) {
