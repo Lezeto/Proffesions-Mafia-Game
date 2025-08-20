@@ -112,11 +112,49 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Profesiones */
+/* Profesiones (elección) */
 .professions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profession-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid #777;
+  border-radius: 5px;
+  padding: 10px;
+  transition: transform 0.2s;
+}
+
+.profession-choice:hover {
+  transform: scale(1.05);
+}
+
+.profession-choice img {
+  max-width: 150px;
+  max-height: 150px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.profession-choice span {
+  font-weight: bold;
+  color: #e0e0e0;
+  margin-top: 5px;
+}
+
+/* Icono al lado del nombre de profesión */
+.profession-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-right: 10px;
+  vertical-align: middle;
 }
 
 /* Misiones como cuadrados, fila horizontal */
@@ -129,6 +167,10 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.titulo {
+  margin-inline-start: 430px;
 }
 
 .mission p {
