@@ -38,6 +38,8 @@ export default function Game() {
   const [missionFull, setMissionFull] = useState(true);
   const [message, setMessage] = useState(""); // mensaje temporal
 
+  const [a, setA] = useState(1); // first-render flag
+
   const expToNextLevel = (lvl) => {
     if (lvl === 1) return 100;
     return Math.floor(expToNextLevel(lvl - 1) * 1.6);
@@ -88,15 +90,21 @@ export default function Game() {
     return () => clearInterval(interval);
   }, [cooldown, hp]);
 
+  // 🚀 Modified mission interval useEffect to skip first render
   useEffect(() => {
+    if (a === 1) {
+      setA(2); // skip first render
+      return;
+    }
+
     if (missions.length < 5) {
       setMissionFull(false);
       setNextMissionIn(70); // reinicia el contador inmediatamente
       const interval = setInterval(() => {
         setNextMissionIn((n) => {
           if (n <= 1) {
-            generateMissions(1);
-            if (missions.length === 5) setMissionFull(true);
+            if (missions.length < 5) generateMissions(1); // safe: max 5 missions
+            if (missions.length + 1 >= 5) setMissionFull(true);
             return 70;
           }
           return n - 1;
@@ -104,7 +112,7 @@ export default function Game() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [missionFull]);
+  }, [missions]); // only depend on missions
 
   const showTempMessage = (msg) => {
     setMessage(msg);
