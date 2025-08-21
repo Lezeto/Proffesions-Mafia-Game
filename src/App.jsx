@@ -144,7 +144,7 @@ export default function Game() {
             tempExp -= expToNextLevel(newLevel);
             newLevel += 1;
             setLevel(newLevel);
-            setPoints((p) => p + 2.5);
+            setPoints((p) => p + 5);
           }
           return tempExp;
         });
