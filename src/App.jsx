@@ -163,6 +163,12 @@ export default function Game() {
     return (
       <div className="game">
         <h1 className="titulo">Elige tu profesión</h1>
+        <p className="descripcion">
+          Bienvenido a la versión inicial de Profesión Mafia. Elige tu profesión favorita y sube de nivel para cometer crímenes más complejos. Puedes desarrollar distintas aptitudes: Fuerza, Coartada, Activos, Información o Patrullaje. Al comenzar, cada profesión tiene 10 puntos en una aptitud específica: el deportista en Fuerza, el abogado en Coartada, el empresario en Activos, el sacerdote en Información y el policía en Patrullaje.<br /><br />
+          Algunos crímenes requieren cierto nivel de aptitud, por lo que no podrás realizarlos todos desde el inicio. Los crímenes simples se pueden hacer de inmediato, mientras que otros exigen niveles mayores. Si no puedes realizar un crimen, puedes dejarlo para después o cancelarlo. Puedes tener hasta 5 crímenes activos, y si te faltan, aparecerá uno nuevo cada 12 segundos.<br /><br />
+          Cada crimen tiene una probabilidad de éxito. Si lo completas, ganas experiencia; si fallas, pierdes vida. La vida se recupera gradualmente, 5 puntos cada 10 segundos. Los crímenes más difíciles toman más tiempo, son más riesgosos y hacen perder más vida si fallan, pero dan más experiencia al tener éxito.<br /><br />
+          Al subir de nivel, obtienes 5 puntos para mejorar tus aptitudes a tu gusto. El objetivo actual es alcanzar 10 en cada aptitud para poder realizar todos los crímenes que quieras. Se pierde si tu vida llega a 0.
+        </p>
         <div className="professions">
           {Object.keys(professions).map((p) => (
             <div key={p} className="profession-choice" onClick={() => chooseProfession(p)}>
