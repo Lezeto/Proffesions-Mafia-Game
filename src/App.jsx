@@ -220,7 +220,7 @@ export default function Game() {
         ))}
       </div>
 
-      <h2>Misiones</h2>
+      <h2>Crímenes</h2>
       <div className="missions">
         {missions.map((m) => (
           <div key={m.id} className="mission">
