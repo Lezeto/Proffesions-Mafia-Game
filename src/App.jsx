@@ -190,7 +190,7 @@ export default function Game() {
 
       <div className="stats">
         <div className="bar-container">
-          <label>HP:</label>
+          <label>Vida:</label>
           <div className="bar-background">
             <div className="bar hp-bar" style={{ width: `${(hp / MAX_HP) * 100}%` }} />
           </div>
@@ -198,7 +198,7 @@ export default function Game() {
         </div>
 
         <div className="bar-container">
-          <label>EXP:</label>
+          <label>Exp:</label>
           <div className="bar-background">
             <div className="bar exp-bar" style={{ width: `${(exp / expToNextLevel(level)) * 100}%` }} />
           </div>
