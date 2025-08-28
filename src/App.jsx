@@ -63,9 +63,9 @@ export default function Game() {
 
   const missionTypes = ["Robo", "Asesinato", "Redada", "Estafa", "Contrabando"];
   const difficulties = [
-    { name: "Simple", req: 0, time: 2000, success: 0.9, damage: 20, exp: 20, lootChance: 0.9 },
-    { name: "Normal", req: 5, time: 3000, success: 0.8, damage: 30, exp: 50, lootChance: 0.9 },
-    { name: "Dificil", req: 10, time: 5000, success: 0.7, damage: 40, exp: 100, lootChance: 0.9 },
+    { name: "Simple", req: 0, time: 5000, success: 0.9, damage: 20, exp: 20, lootChance: 0.3 },
+    { name: "Normal", req: 5, time: 8000, success: 0.8, damage: 30, exp: 50, lootChance: 0.4 },
+    { name: "Dificil", req: 10, time: 20000, success: 0.7, damage: 40, exp: 100, lootChance: 0.7 },
   ];
 
   const itemsPool = ["Helmet", "Armor", "Legs", "Boots", "Sword", "Shield", "Wand", "Ring", "Book", "Gem"];
