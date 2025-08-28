@@ -63,9 +63,9 @@ export default function Game() {
 
   const missionTypes = ["Robo", "Asesinato", "Redada", "Estafa", "Contrabando"];
   const difficulties = [
-    { name: "Simple", req: 0, time: 5000, success: 0.9, damage: 20, exp: 20, lootChance: 0.3 },
-    { name: "Normal", req: 5, time: 8000, success: 0.8, damage: 30, exp: 50, lootChance: 0.4 },
-    { name: "Dificil", req: 10, time: 10000, success: 0.7, damage: 40, exp: 100, lootChance: 0.6 },
+    { name: "Simple", req: 0, time: 2000, success: 0.9, damage: 20, exp: 20, lootChance: 0.9 },
+    { name: "Normal", req: 5, time: 3000, success: 0.8, damage: 30, exp: 50, lootChance: 0.9 },
+    { name: "Dificil", req: 10, time: 5000, success: 0.7, damage: 40, exp: 100, lootChance: 0.9 },
   ];
 
   const itemsPool = ["Helmet", "Armor", "Legs", "Boots", "Sword", "Shield", "Wand", "Ring", "Book", "Gem"];
@@ -94,12 +94,12 @@ export default function Game() {
   const [character, setCharacter] = useState({
     inventory: [],
     equipment: {
-      helmet: null,
-      armor: null,
-      legs: null,
-      boots: null,
-      leftHand: null,
-      rightHand: null,
+      Casco: null,
+      Armadura: null,
+      Pantalón: null,
+      Botas: null,
+      Izquierda: null,
+      Derecha: null,
     },
   });
   const [draggedItem, setDraggedItem] = useState(null);
@@ -226,28 +226,44 @@ export default function Game() {
   // ---- Inventory & Equipment ----
   const isValidSlot = (item, slot) => {
     const validSlots = {
-      Helmet: ["helmet"],
-      Armor: ["armor"],
-      Legs: ["legs"],
-      Boots: ["boots"],
-      Sword: ["leftHand", "rightHand"],
-      Shield: ["leftHand", "rightHand"],
-      Wand: ["leftHand", "rightHand"],
-      Ring: ["leftHand", "rightHand"],
-      Book: ["leftHand", "rightHand"],
-      Capa: ["armor"],
-      Hat: ["helmet"],
+      Helmet: ["Casco"],
+      Armor: ["Armadura"],
+      Legs: ["Pantalón"],
+      Boots: ["Botas"],
+      Sword: ["Izquierda", "Derecha"],
+      Shield: ["Izquierda", "Derecha"],
+      Wand: ["Izquierda", "Derecha"],
+      Ring: ["Izquierda", "Derecha"],
+      Book: ["Izquierda", "Derecha"],
+      Capa: ["Armadura"],
+      Hat: ["Casco"],
     };
     return validSlots[item]?.includes(slot);
   };
 
   const equipItem = (item, slot) => {
     if (isValidSlot(item, slot)) {
-      setCharacter((prev) => ({
-        ...prev,
-        equipment: { ...prev.equipment, [slot]: item },
-        inventory: prev.inventory.filter((i, index) => index !== prev.inventory.indexOf(item)),
-      }));
+      setCharacter((prev) => {
+        const currentlyEquipped = prev.equipment[slot];
+        const newInventory = [...prev.inventory];
+
+        // Remove the new item from inventory
+        const itemIndex = newInventory.indexOf(item);
+        if (itemIndex > -1) {
+          newInventory.splice(itemIndex, 1);
+        }
+
+        // If there's an item already equipped in this slot, add it to inventory
+        if (currentlyEquipped) {
+          newInventory.push(currentlyEquipped);
+        }
+
+        return {
+          ...prev,
+          equipment: { ...prev.equipment, [slot]: item },
+          inventory: newInventory,
+        };
+      });
     }
   };
 
@@ -268,21 +284,33 @@ export default function Game() {
 
   const handleDrop = (e, slot) => {
     e.preventDefault();
-    if (draggedItem && isValidSlot(draggedItem, slot)) {
-      const currentSlot = Object.keys(character.equipment).find(
-        (key) => character.equipment[key] === draggedItem
-      );
-      const itemInTargetSlot = character.equipment[slot];
+    if (!draggedItem || !isValidSlot(draggedItem, slot)) return;
 
-      if (currentSlot) {
-        unequipItem(currentSlot);
+    setCharacter((prev) => {
+      const targetItem = prev.equipment[slot];
+      const draggedItemSlot = Object.keys(prev.equipment).find(
+        key => prev.equipment[key] === draggedItem
+      );
+
+      const newEquipment = { ...prev.equipment };
+      const newInventory = [...prev.inventory];
+
+      if (draggedItemSlot) {
+        // Swap equipped items
+        newEquipment[draggedItemSlot] = targetItem;
+        newEquipment[slot] = draggedItem;
+      } else {
+        // From inventory to equipment
+        const itemIndex = newInventory.indexOf(draggedItem);
+        if (itemIndex > -1) newInventory.splice(itemIndex, 1);
+        if (targetItem) newInventory.push(targetItem);
+        newEquipment[slot] = draggedItem;
       }
-      equipItem(draggedItem, slot);
-      if (itemInTargetSlot) {
-        equipItem(itemInTargetSlot, currentSlot);
-      }
-      setDraggedItem(null);
-    }
+
+      return { ...prev, equipment: newEquipment, inventory: newInventory };
+    });
+
+    setDraggedItem(null);
   };
 
   const handleDragOver = (e) => {
@@ -366,31 +394,43 @@ export default function Game() {
           <div className="equipment-section">
             <h2>Equipo</h2>
             <div className="equipment-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: "5px" }}>
-              {["helmet", "leftHand", "armor", "rightHand", "legs", "boots"].map((slot) => (
-                <div
-                  key={slot}
-                  className={`equipment-slot ${slot}`}
-                  onDrop={(e) => handleDrop(e, slot)}
-                  onDragOver={handleDragOver}
-                  style={{ border: "1px solid #777", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                >
-                  {character.equipment[slot] ? (
-                    <div
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, character.equipment[slot])}
-                      onClick={() => unequipItem(slot)}
-                    >
-                      <img
-                        src={items.find(i => i.name === character.equipment[slot]).img}
-                        alt={character.equipment[slot]}
-                        style={{ width: "64px", height: "64px", objectFit: "contain" }}
-                      />
-                    </div>
-                  ) : (
-                    <span>{slot}</span>
-                  )}
-
-                </div>
+              {[
+                null, "Casco", null,
+                "Izquierda", "Armadura", "Derecha",
+                null, "Pantalón", null,
+                null, "Botas", null
+              ].map((slot, index) => (
+                slot ? (
+                  <div
+                    key={slot}
+                    className={`equipment-slot ${slot}`}
+                    onDrop={(e) => handleDrop(e, slot)}
+                    onDragOver={handleDragOver}
+                    onClick={() => {
+                      if (character.equipment[slot]) {
+                        unequipItem(slot);
+                      }
+                    }}
+                    style={{ border: "1px solid #777", height: "80px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                  >
+                    {character.equipment[slot] ? (
+                      <div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, character.equipment[slot])}
+                      >
+                        <img
+                          src={items.find(i => i.name === character.equipment[slot]).img}
+                          alt={character.equipment[slot]}
+                          style={{ width: "64px", height: "64px", objectFit: "contain" }}
+                        />
+                      </div>
+                    ) : (
+                      <span>{slot}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div key={`empty-${index}`} style={{ height: "80px" }}></div>
+                )
               ))}
             </div>
           </div>
