@@ -42,7 +42,7 @@ body {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
-  min-width: 600px;
+  min-width: 400px;
 }
 
 .bar-container {
@@ -82,29 +82,34 @@ body {
   background-color: #58d68d;
 }
 
-/* ---------------- INVENTORY / ITEMS ---------------- */
-.inventory {
+/* ---------------- INVENTORY / EQUIPMENT LAYOUT ---------------- */
+
+.right-panel {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.equipment-section {
+  flex: 0 0 auto;
+}
+
+.inventory-section {
+  flex: 1;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  gap: 5px;
   margin-bottom: 20px;
 }
 
-.items-grid {
+.inventory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 16px;
-  margin-top: 12px;
-}
-
-.item-card {
-  background: #333842;
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
-}
-
-.item-img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
+  grid-template-columns: repeat(5, 60px);
+  gap: 5px;
 }
 
 /* Equipment / Inventory slots */
@@ -113,6 +118,18 @@ body {
   background: #3a3a3a;
   border: 1px solid #777;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.equipment-slot {
+  height: 80px;
+}
+
+.inventory-slot {
+  height: 60px;
 }
 
 .equipment-slot span {
@@ -306,7 +323,18 @@ h1 {
   
   .stats-and-inventory {
     flex-direction: column;
-    gap: 15px; /* adjust spacing between stats and inventory */
+    gap: 15px;
+  }
+
+  .right-panel {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .equipment-section,
+  .inventory-section {
+    flex: none;
+    width: 100%;
   }
 
 }
