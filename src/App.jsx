@@ -6,7 +6,45 @@ import empresarioImg from "./empresario.png";
 import sacerdoteImg from "./sacerdote.png";
 import policiaImg from "./policia.png";
 
+import gemImg from "./gem.png";
+import swordImg from "./sword.png";
+import shieldImg from "./shield.png";
+import helmetImg from "./helmet.png";
+import armorImg from "./armor.png";
+import legsImg from "./legs.png";
+import bootsImg from "./boots.png";
+import wandImg from "./wand.png";
+import ringImg from "./ring.png";
+import bookImg from "./book.png";
+
+
 export default function Game() {
+
+  const items = [
+    { id: 1, name: "Gem", img: gemImg },
+    { id: 2, name: "Sword", img: swordImg },
+    { id: 3, name: "Shield", img: shieldImg },
+    { id: 4, name: "Helmet", img: helmetImg },
+    { id: 5, name: "Armor", img: armorImg },
+    { id: 6, name: "Legs", img: legsImg },
+    { id: 7, name: "Boots", img: bootsImg },
+    { id: 8, name: "Wand", img: wandImg },
+    { id: 9, name: "Ring", img: ringImg },
+    { id: 10, name: "Book", img: bookImg },
+  ];
+
+  const itemImages = {
+    Gem: gemImg,
+    Sword: swordImg,
+    Shield: shieldImg,
+    Helmet: helmetImg,
+    Armor: armorImg,
+    Legs: legsImg,
+    Boots: bootsImg,
+    Wand: wandImg,
+    Ring: ringImg,
+    Book: bookImg,
+  };
   const professions = {
     Deportista: "fuerza",
     Abogado: "coartada",
@@ -25,10 +63,12 @@ export default function Game() {
 
   const missionTypes = ["Robo", "Asesinato", "Redada", "Estafa", "Contrabando"];
   const difficulties = [
-    { name: "Simple", req: 0, time: 5000, success: 0.9, damage: 20, exp: 20 },
-    { name: "Normal", req: 5, time: 8000, success: 0.8, damage: 30, exp: 50 },
-    { name: "Dificil", req: 10, time: 10000, success: 0.7, damage: 40, exp: 100 },
+    { name: "Simple", req: 0, time: 5000, success: 0.9, damage: 20, exp: 20, lootChance: 0.3 },
+    { name: "Normal", req: 5, time: 8000, success: 0.8, damage: 30, exp: 50, lootChance: 0.4 },
+    { name: "Dificil", req: 10, time: 10000, success: 0.7, damage: 40, exp: 100, lootChance: 0.6 },
   ];
+
+  const itemsPool = ["Helmet", "Armor", "Legs", "Boots", "Sword", "Shield", "Wand", "Ring", "Book", "Gem"];
 
   const MAX_STAT = 30;
   const MAX_HP = 100;
@@ -48,9 +88,21 @@ export default function Game() {
   const [missions, setMissions] = useState([]);
   const [cooldown, setCooldown] = useState(0);
   const [nextMissionIn, setNextMissionIn] = useState(12);
-  const [missionFull, setMissionFull] = useState(true);
   const [message, setMessage] = useState("");
-  const [a, setA] = useState(1);
+
+  // Inventory & Equipment
+  const [character, setCharacter] = useState({
+    inventory: [],
+    equipment: {
+      helmet: null,
+      armor: null,
+      legs: null,
+      boots: null,
+      leftHand: null,
+      rightHand: null,
+    },
+  });
+  const [draggedItem, setDraggedItem] = useState(null);
 
   const expToNextLevel = (lvl) => {
     if (lvl === 1) return 100;
@@ -126,6 +178,7 @@ export default function Game() {
     setTimeout(() => setMessage(""), 7000);
   };
 
+  // ---- Mission accept with loot system ----
   const acceptMission = (mission) => {
     if (cooldown > 0) return;
     if (stats[mission.reqStat] < mission.difficulty.req) {
@@ -148,6 +201,17 @@ export default function Game() {
           }
           return tempExp;
         });
+
+        // Loot drop
+        if (Math.random() < mission.difficulty.lootChance) {
+          const newItem = itemsPool[Math.floor(Math.random() * itemsPool.length)];
+          setCharacter((prev) => ({
+            ...prev,
+            inventory: [...prev.inventory, newItem],
+          }));
+          showTempMessage(`¡Encontraste un ${newItem}!`);
+        }
+
       } else {
         showTempMessage(`Fallaste la misión ${mission.name}`);
         setHp((h) => Math.max(0, h - mission.difficulty.damage));
@@ -159,15 +223,79 @@ export default function Game() {
   const cancelMission = (missionId) => setMissions((ms) => ms.filter((m) => m.id !== missionId));
   const upgradeStat = (stat) => { if (points > 0 && stats[stat] < MAX_STAT) { setStats((s) => ({ ...s, [stat]: s[stat] + 1 })); setPoints((p) => p - 1); } };
 
+  // ---- Inventory & Equipment ----
+  const isValidSlot = (item, slot) => {
+    const validSlots = {
+      Helmet: ["helmet"],
+      Armor: ["armor"],
+      Legs: ["legs"],
+      Boots: ["boots"],
+      Sword: ["leftHand", "rightHand"],
+      Shield: ["leftHand", "rightHand"],
+      Wand: ["leftHand", "rightHand"],
+      Ring: ["leftHand", "rightHand"],
+      Book: ["leftHand", "rightHand"],
+      Capa: ["armor"],
+      Hat: ["helmet"],
+    };
+    return validSlots[item]?.includes(slot);
+  };
+
+  const equipItem = (item, slot) => {
+    if (isValidSlot(item, slot)) {
+      setCharacter((prev) => ({
+        ...prev,
+        equipment: { ...prev.equipment, [slot]: item },
+        inventory: prev.inventory.filter((i, index) => index !== prev.inventory.indexOf(item)),
+      }));
+    }
+  };
+
+  const unequipItem = (slot) => {
+    const item = character.equipment[slot];
+    if (item) {
+      setCharacter((prev) => ({
+        ...prev,
+        equipment: { ...prev.equipment, [slot]: null },
+        inventory: [...prev.inventory, item],
+      }));
+    }
+  };
+
+  const handleDragStart = (e, item) => {
+    setDraggedItem(item);
+  };
+
+  const handleDrop = (e, slot) => {
+    e.preventDefault();
+    if (draggedItem && isValidSlot(draggedItem, slot)) {
+      const currentSlot = Object.keys(character.equipment).find(
+        (key) => character.equipment[key] === draggedItem
+      );
+      const itemInTargetSlot = character.equipment[slot];
+
+      if (currentSlot) {
+        unequipItem(currentSlot);
+      }
+      equipItem(draggedItem, slot);
+      if (itemInTargetSlot) {
+        equipItem(itemInTargetSlot, currentSlot);
+      }
+      setDraggedItem(null);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // ---- Render ----
   if (!profession) {
     return (
       <div className="game">
         <h1 className="titulo">Elige tu profesión</h1>
         <p className="descripcion">
-          Bienvenido a la versión inicial de Profesión Mafia. Elige tu profesión favorita y sube de nivel para cometer crímenes más complejos. Puedes desarrollar distintas aptitudes: Fuerza, Coartada, Activos, Información o Patrullaje. Al comenzar, cada profesión tiene 10 puntos en una aptitud específica: el deportista en Fuerza, el abogado en Coartada, el empresario en Activos, el sacerdote en Información y el policía en Patrullaje.<br /><br />
-          Algunos crímenes requieren cierto nivel de aptitud, por lo que no podrás realizarlos todos desde el inicio. Los crímenes simples se pueden hacer de inmediato, mientras que otros exigen niveles mayores. Si no puedes realizar un crimen, puedes dejarlo para después o cancelarlo. Puedes tener hasta 5 crímenes activos, y si te faltan, aparecerá uno nuevo cada 12 segundos.<br /><br />
-          Cada crimen tiene una probabilidad de éxito. Si lo completas, ganas experiencia; si fallas, pierdes vida. La vida se recupera gradualmente, 5 puntos cada 10 segundos. Los crímenes más difíciles toman más tiempo, son más riesgosos y hacen perder más vida si fallan, pero dan más experiencia al tener éxito.<br /><br />
-          Al subir de nivel, obtienes 5 puntos para mejorar tus aptitudes a tu gusto. El objetivo actual es alcanzar 10 en cada aptitud para poder realizar todos los crímenes que quieras. Se pierde si tu vida llega a 0.
+          Bienvenido a la versión inicial de Profesión Mafia...
         </p>
         <div className="professions">
           {Object.keys(professions).map((p) => (
@@ -188,36 +316,94 @@ export default function Game() {
         {profession}
       </h1>
 
-      <div className="stats">
-        <div className="bar-container">
-          <label>Vida:</label>
-          <div className="bar-background">
-            <div className="bar hp-bar" style={{ width: `${(hp / MAX_HP) * 100}%` }} />
-          </div>
-          <span>{hp}/{MAX_HP}</span>
-        </div>
-
-        <div className="bar-container">
-          <label>Exp:</label>
-          <div className="bar-background">
-            <div className="bar exp-bar" style={{ width: `${(exp / expToNextLevel(level)) * 100}%` }} />
-          </div>
-          <span>{exp}/{expToNextLevel(level)}</span>
-        </div>
-
-        <p>Nivel: {level}</p>
-        <p>Puntos disponibles: {points}</p>
-
-        {Object.keys(stats).map((s) => (
-          <div key={s} className="bar-container">
-            <label>{s}:</label>
+      <div className="stats-and-inventory" style={{ display: "flex", gap: "20px" }}>
+        <div className="stats">
+          <div className="bar-container">
+            <label>Vida:</label>
             <div className="bar-background">
-              <div className="bar stat-bar" style={{ width: `${(stats[s] / MAX_STAT) * 100}%` }} />
+              <div className="bar hp-bar" style={{ width: `${(hp / MAX_HP) * 100}%` }} />
             </div>
-            <span>{stats[s]}/{MAX_STAT}</span>
-            <button onClick={() => upgradeStat(s)}>+</button>
+            <span>{hp}/{MAX_HP}</span>
           </div>
-        ))}
+
+          <div className="bar-container">
+            <label>Exp:</label>
+            <div className="bar-background">
+              <div className="bar exp-bar" style={{ width: `${(exp / expToNextLevel(level)) * 100}%` }} />
+            </div>
+            <span>{exp}/{expToNextLevel(level)}</span>
+          </div>
+
+          <p>Nivel: {level}</p>
+          <p>Puntos disponibles: {points}</p>
+
+          {Object.keys(stats).map((s) => (
+            <div key={s} className="bar-container">
+              <label>{s}:</label>
+              <div className="bar-background">
+                <div className="bar stat-bar" style={{ width: `${(stats[s] / MAX_STAT) * 100}%` }} />
+              </div>
+              <span>{stats[s]}/{MAX_STAT}</span>
+              <button onClick={() => upgradeStat(s)}>+</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Equipment + Inventory */}
+        <div className="right-panel">
+          <div className="equipment-section">
+            <h2>Equipo</h2>
+            <div className="equipment-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: "5px" }}>
+              {["helmet", "leftHand", "armor", "rightHand", "legs", "boots"].map((slot) => (
+                <div
+                  key={slot}
+                  className={`equipment-slot ${slot}`}
+                  onDrop={(e) => handleDrop(e, slot)}
+                  onDragOver={handleDragOver}
+                  style={{ border: "1px solid #777", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  {character.equipment[slot] ? (
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, character.equipment[slot])}
+                      onClick={() => unequipItem(slot)}
+                    >
+                      <img
+                        src={items.find(i => i.name === character.equipment[slot]).img}
+                        alt={character.equipment[slot]}
+                        style={{ width: "64px", height: "64px", objectFit: "contain" }}
+                      />
+                    </div>
+                  ) : (
+                    <span>{slot}</span>
+                  )}
+
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="inventory-section">
+            <h2>Inventario</h2>
+            <div className="inventory-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 60px)", gap: "5px" }}>
+              {Array.from({ length: 20 }).map((_, index) => (
+                <div key={index} className="inventory-slot" style={{ border: "1px solid #777", height: "60px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {character.inventory[index] && (
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, character.inventory[index])}
+                    >
+                      <img
+                        src={itemImages[character.inventory[index]]}
+                        alt={character.inventory[index]}
+                        style={{ width: "48px", height: "48px", objectFit: "contain" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <h2>Crímenes</h2>
