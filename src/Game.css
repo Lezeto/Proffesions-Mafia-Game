@@ -242,6 +242,10 @@ h1 {
     width: 40px;
   }
 
+  .descripcion{
+    text-align: left;
+  }
+
 /* ---------------- RESPONSIVE ---------------- */
 @media (max-width: 768px) {
   body {
